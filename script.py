@@ -1,7 +1,9 @@
 import tkinter as tk
 import numpy as np
 import cv2
+import random
 import pyautogui
+import time as t
 from PIL import ImageGrab
 
 NIVEAU_PRINT = 3
@@ -12,6 +14,16 @@ def script_caresseur():
     ouvrir_menu_dragodinde()
     cocher_stats_caresseur()
     remplir_enclos_caresseur()
+    aller_a_random_dragodinde()
+    t.sleep(2)
+    aller_a_random_dragodinde()
+    t.sleep(2)
+    aller_a_random_dragodinde()
+    t.sleep(2)
+    aller_a_random_dragodinde()
+    t.sleep(2)
+    aller_a_random_dragodinde()
+
 
 def afficher_message(message):
     log_box.insert(tk.END, message)
@@ -100,6 +112,25 @@ def ajouter_premiere_dragodinde():
     
 def placer_curseur_premiere_dd():
     cliquer_sur_pattern('./img/premiere_dragodinde_etable.png')
+
+def aller_a_random_dragodinde():
+    current_image = capturer_ecran()
+    pattern = cv2.imread('./img/dragodinde_dans_enclos.png')
+    h, w = pattern.shape[:-1]
+    res = cv2.matchTemplate(current_image,pattern, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.95
+    loc = np.where(res >= treshold)
+    points = []
+    for pt in zip(*loc[::-1]):
+        center_x = pt[0] + w // 2
+        center_y = pt[1] + h // 2
+        points.append((center_x, center_y))
+    if not points:
+        if NIVEAU_PRINT > 1:
+            afficher_message("Aucune dragodinde détectée dans l'enclos.")
+        return
+    choisi = random.choice(points)
+    pyautogui.moveTo(*choisi)
 
 def remplir_enclos_caresseur():
     placer_curseur_premiere_dd()
