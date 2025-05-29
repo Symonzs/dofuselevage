@@ -55,7 +55,19 @@ def cliquer_sur_pattern(pattern_path):
         center_y = pt[1] +h//2
         pyautogui.moveTo(center_x,center_y)
         pyautogui.click()
-        log_box.insert("pattern de "+pattern_path+" trouvé en ["+center_x+","+center_y+"]")
+        log_box.insert("pattern de "+pattern_path+" trouvé en ["+center_x+","+center_y+"] click")
+
+def pattern_est_present(pattern_path):
+    current_image = capturer_ecran()
+    pattern = cv2.imread(pattern_path)
+    h, w = pattern.shape[:-1]
+    res = cv2.matchTemplate(current_image,pattern, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.9
+    #loc = np.where(res >= treshold)
+    if(np.any(res >= treshold)):
+        log_box.insert("pattern de "+pattern_path+" trouvé")
+        return True
+    return False
 
 
 root = tk.Tk()
