@@ -5,15 +5,18 @@ import pyautogui
 from PIL import ImageGrab
 
 NIVEAU_PRINT = 3
+MAXDDCARESSEUR =5
+ACTUALDDCARESSEUR = 0
 
 def script_caresseur():
     ouvrir_menu_dragodinde()
     cocher_stats_caresseur()
+    remplir_enclos_caresseur()
 
 def afficher_message(message):
     log_box.insert(tk.END, message)
     log_box.see(tk.END)
-    root.update
+    root.update()
 
 def com1():
     log_box.insert(tk.END, "com1")
@@ -82,6 +85,32 @@ def pattern_est_present(pattern_path):
             afficher_message(f"pattern de {pattern_path} trouvé")
             return True
     return False
+
+def reste_dragodinde_etable():
+    if pattern_est_present('./img/dragodinde_presente_etable.png'):
+        if NIVEAU_PRINT > 1:
+            afficher_message("dragodinde detecté dans l'étable")
+        return True
+    else:
+        return False
+    
+def ajouter_premiere_dragodinde():
+    cliquer_sur_pattern('./img/dragodinde_presente_etable.png')
+    pyautogui.click()
+    
+def placer_curseur_premiere_dd():
+    cliquer_sur_pattern('./img/premiere_dragodinde_etable.png')
+
+def remplir_enclos_caresseur():
+    placer_curseur_premiere_dd()
+    global ACTUALDDCARESSEUR,MAXDDCARESSEUR
+    while ACTUALDDCARESSEUR <= MAXDDCARESSEUR or reste_dragodinde_etable():
+        print(ACTUALDDCARESSEUR <= MAXDDCARESSEUR)
+        print(reste_dragodinde_etable())
+        if NIVEAU_PRINT > 1:
+            afficher_message("ajout d'une draoginde dans l'enclos")
+        ajouter_premiere_dragodinde()
+        ACTUALDDCARESSEUR +=1
 
 
 root = tk.Tk()
