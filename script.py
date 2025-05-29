@@ -4,6 +4,16 @@ import cv2
 import pyautogui
 from PIL import ImageGrab
 
+NIVEAU_PRINT = 3
+
+def script_caresseur():
+    ouvrir_menu_dragodinde()
+    cocher_stats_caresseur()
+
+def afficher_message(message):
+    log_box.insert(tk.END, message)
+    log_box.see(tk.END)
+    root.update
 
 def com1():
     log_box.insert(tk.END, "com1")
@@ -20,28 +30,30 @@ def afficher_capture(capture):
     cv2.imshow("capture",capture)
 
 def ouvrir_menu_dragodinde():
-    current_image = capturer_ecran()
-    info_ferme_pattern = cv2.imread('./img/info_ferme.png')
-    w, h = info_ferme_pattern.shape[:-1]
-    res = cv2.matchTemplate(current_image, info_ferme_pattern, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.9
-    loc = np.where(res >= threshold)
-    if np.any(res >= threshold):
-        print("j'ai trouvé le menu ferme")
-        print(loc)
-        statistiques = cv2.imread('./img/statistiques.png')
-        h, w = statistiques.shape[:-1]
-        res = cv2.matchTemplate(current_image, statistiques, cv2.TM_CCOEFF_NORMED)
-        threshold = 0.9
-        loc = np.where(res >= threshold)
-        for pt in zip(*loc[::-1]):
-            print("j'ai trouvé stat")
-            cv2.rectangle(current_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-            #cv2.imshow('result.jpg', current_image)
-            center_x = pt[0] + w //2
-            center_y = pt[1] +h //2
-            pyautogui.moveTo(center_x,center_y)
-            pyautogui.click()
+    if pattern_est_present("./img/info_ferme.png"):
+        if NIVEAU_PRINT > 1:
+            afficher_message("Menu fermé detecté")
+        cliquer_sur_pattern('./img/statistiques.png')
+        if NIVEAU_PRINT > 0:
+            afficher_message("Statistique ouverte")
+    else :
+        if NIVEAU_PRINT > 1:
+            afficher_message("Menu ouvert detecté")
+
+
+def cocher_stats_caresseur():
+    cliquer_sur_pattern('./img/serenite_negative.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur serenité négative")
+    cliquer_sur_pattern('./img/endurance_suffisante.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur endurance suffisante")
+    cliquer_sur_pattern('./img/besoin_damour.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur besoin d'amour")
+    if NIVEAU_PRINT > 0:
+        afficher_message("stats pour caresseur activé")
+        
 
 def cliquer_sur_pattern(pattern_path):
     current_image = capturer_ecran()
@@ -55,7 +67,8 @@ def cliquer_sur_pattern(pattern_path):
         center_y = pt[1] +h//2
         pyautogui.moveTo(center_x,center_y)
         pyautogui.click()
-        log_box.insert("pattern de "+pattern_path+" trouvé en ["+center_x+","+center_y+"] click")
+        if NIVEAU_PRINT > 2:
+            afficher_message(f"pattern de {pattern_path} trouvé en [{center_x},{center_y}] click")
 
 def pattern_est_present(pattern_path):
     current_image = capturer_ecran()
@@ -65,8 +78,9 @@ def pattern_est_present(pattern_path):
     treshold = 0.9
     #loc = np.where(res >= treshold)
     if(np.any(res >= treshold)):
-        log_box.insert("pattern de "+pattern_path+" trouvé")
-        return True
+        if NIVEAU_PRINT > 2:
+            afficher_message(f"pattern de {pattern_path} trouvé")
+            return True
     return False
 
 
@@ -78,7 +92,7 @@ frame.pack(padx=20, pady=10)
 
 btns = tk.Frame(frame)
 btns.pack()
-tk.Button(btns, text="Caresseur", width=10,command=capturer_ecran).grid(row=0, column=0)
+tk.Button(btns, text="Caresseur", width=10,command=script_caresseur).grid(row=0, column=0)
 tk.Button(btns, text="Baffeur", width=10, command=ouvrir_menu_dragodinde).grid(row=0, column=1)
 tk.Button(btns, text="Dragofesse", width=10, command=lambda: ajouter_direction("bas")).grid(row=0, column=2)
 tk.Button(btns, text="Foudroyeur", width=10, command=lambda: ajouter_direction("droite")).grid(row=0, column=3)
