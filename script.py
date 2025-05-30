@@ -23,6 +23,7 @@ def script_caresseur():
         if analyser_fiche_dragodinde():
             pyautogui.click()
             pyautogui.click()
+            pyautogui.click()
             ACTUALDDCARESSEUR -=1
         
 
@@ -240,7 +241,7 @@ def analyser_fiche_dragodinde():
 
 
 root = tk.Tk()
-root.title("Bot Récolte Dofus")
+root.title("Bot Elevage Dofus")
 
 frame = tk.Frame(root)
 frame.pack(padx=20, pady=10)
