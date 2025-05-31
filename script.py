@@ -11,6 +11,8 @@ from PIL import ImageGrab
 NIVEAU_PRINT = 3
 MAXDDCARESSEUR =5
 ACTUALDDCARESSEUR = 0
+MAXDDBAFFEUR = 6
+ACTUALDDBAFFEUR = 0
 
 def script_caresseur():
     global ACTUALDDCARESSEUR
@@ -20,14 +22,39 @@ def script_caresseur():
         placer_curseur_premiere_dd()
         remplir_enclos_caresseur()
         aller_a_random_dragodinde()
-        if analyser_fiche_dragodinde():
+        if analyser_fiche_dragodinde_caresseur():
             pyautogui.click()
             pyautogui.click()
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
-        
+    while not enclos_est_vide():
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_caresseur():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDCARESSEUR -=1
 
-
+def script_baffeur():
+    global ACTUALDDBAFFEUR
+    ouvrir_menu_dragodinde()
+    cocher_stats_baffeur()
+    while reste_dragodinde_etable():
+        placer_curseur_premiere_dd()
+        remplir_enclos_baffeur()
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_baffeur():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDCARESSEUR -=1
+    while not enclos_est_vide():
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_baffeur():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDCARESSEUR -=1
 
 
 
@@ -82,9 +109,24 @@ def cocher_stats_caresseur():
     cliquer_sur_pattern('./img/besoin_damour.png')
     if NIVEAU_PRINT > 1:
         afficher_message("click sur besoin d'amour")
+    cliquer_sur_pattern('./img/fatigue.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur <50 fatigue")
     if NIVEAU_PRINT > 0:
         afficher_message("stats pour caresseur activé")
-        
+
+def cocher_stats_baffeur():
+    cliquer_sur_pattern('./img/serenite_positive.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur serenité positive")
+    cliquer_sur_pattern('./img/besoin_endurance.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur besoin endurance")
+    cliquer_sur_pattern('./img/amour_suffisant.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur amour suffisant")
+    if NIVEAU_PRINT > 0:
+        afficher_message("stats pour baffeur activé")
 
 def cliquer_sur_pattern(pattern_path):
     current_image = capturer_ecran()
@@ -173,7 +215,16 @@ def remplir_enclos_caresseur():
         ajouter_premiere_dragodinde()
         ACTUALDDCARESSEUR +=1
 
-def analyser_fiche_dragodinde():
+def remplir_enclos_baffeur():
+    placer_curseur_premiere_dd()
+    global ACTUALDDBAFFEUR,MAXDDBAFFEUR
+    while ACTUALDDBAFFEUR < MAXDDBAFFEUR and reste_dragodinde_etable():
+        if NIVEAU_PRINT > 1:
+            afficher_message("ajout d'une draoginde dans l'enclos")
+        ajouter_premiere_dragodinde()
+        ACTUALDDBAFFEUR +=1
+
+def analyser_fiche_dragodinde_caresseur():
     fiche = com1()  # → doit retourner l'image découpée de la fiche
     fiche = cv2.cvtColor(fiche, cv2.COLOR_RGB2BGR)
     afficher_message("je scan la fiche")
@@ -238,9 +289,79 @@ def analyser_fiche_dragodinde():
         return True
     else:
         return False
+    
 
+def analyser_fiche_dragodinde_baffeur():
+    fiche = com1()  # → doit retourner l'image découpée de la fiche
+    fiche = cv2.cvtColor(fiche, cv2.COLOR_RGB2BGR)
+    afficher_message("je scan la fiche")
+    if fiche is None:
+        return False
+
+    # -- Détection du sexe --
+    sexe = "inconnu"
+    try:
+        male_icon = cv2.imread('./img/male.png')
+        femelle_icon = cv2.imread('./img/femelle.png')
+        #cv2.imshow("icon",femelle_icon)
+        #cv2.imshow("fiche",fiche)
+
+        if male_icon is not None:
+            res_male = cv2.matchTemplate(fiche, male_icon, cv2.TM_CCOEFF_NORMED)
+            afficher_message("je vais check si c'est un male")
+            if np.max(res_male) > 0.9:
+                sexe = "male"
+                afficher_message("je detecte un male")
+
+        if femelle_icon is not None:
+            res_femelle = cv2.matchTemplate(fiche, femelle_icon, cv2.TM_CCOEFF_NORMED)
+            afficher_message("je vais check si c'est une femelle")
+            if np.max(res_femelle) > 0.9:
+                sexe = "femelle"
+                afficher_message("je detecte une femelle")
+    except:
+        return False
+
+    # -- Lecture de l’humeur --
+    try:
+        x, y, w, h = 140, 385, 70, 30  # zone relative à la fiche (à ajuster)
+        humeur_zone = fiche[y:y+h, x:x+w]
+        cv2.imshow("humeur drago",humeur_zone)
+        afficher_message("analyse de l'humeur de la dragodinde")
+        gray = cv2.cvtColor(humeur_zone, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        config = "--psm 7 -c tessedit_char_whitelist=-0123456789"
+        texte = pytesseract.image_to_string(thresh, config=config).strip()
+        humeur1 = int(texte)
+        x, y, w, h = 140, 385, 70, 30  # zone relative à la fiche (à ajuster)
+        humeur_zone = fiche[y:y+h, x:x+w]
+        cv2.imshow("humeur drago",humeur_zone)
+        afficher_message("analyse de l'humeur de la dragodinde")
+        gray = cv2.cvtColor(humeur_zone, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        config = "--psm 7 -c tessedit_char_whitelist=-0123456789"
+        texte = pytesseract.image_to_string(thresh, config=config).strip()
+        humeur2 = int(texte)
+        if humeur1 == humeur2:
+            afficher_message(f"j'ai trouver une humeur de {humeur1}")
+        else:
+            return False
+    except:
+        return False
+
+    # -- Vérifie les règles --
+    if sexe == "femelle" and humeur1 < 700 and humeur2 < 700:
+        return True
+    elif sexe == "male" and humeur1 < 0 and humeur2 < 0:
+        return True
+    else:
+        return False
+
+def enclos_est_vide():
+    return pattern_est_present('./img/dragodinde_dans_enclos.png')
 
 root = tk.Tk()
+root.attributes('-topmost', True)
 root.title("Bot Elevage Dofus")
 
 frame = tk.Frame(root)
@@ -249,7 +370,7 @@ frame.pack(padx=20, pady=10)
 btns = tk.Frame(frame)
 btns.pack()
 tk.Button(btns, text="Caresseur", width=10,command=script_caresseur).grid(row=0, column=0)
-tk.Button(btns, text="Baffeur", width=10, command=ouvrir_menu_dragodinde).grid(row=0, column=1)
+tk.Button(btns, text="Baffeur", width=10, command=script_baffeur).grid(row=0, column=1)
 tk.Button(btns, text="Dragofesse", width=10, command=com1).grid(row=0, column=2)
 tk.Button(btns, text="Foudroyeur", width=10, command=lambda: ajouter_direction("droite")).grid(row=0, column=3)
 
