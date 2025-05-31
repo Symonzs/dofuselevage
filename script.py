@@ -13,6 +13,8 @@ MAXDDCARESSEUR =5
 ACTUALDDCARESSEUR = 0
 MAXDDBAFFEUR = 6
 ACTUALDDBAFFEUR = 0
+MAXDDBOUFFE = 6
+ACTUALDDBOUFFE =0
 
 def script_caresseur():
     global ACTUALDDCARESSEUR
@@ -56,7 +58,26 @@ def script_baffeur():
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
 
-
+def script_nourriture():
+    global ACTUALDDBOUFFE
+    ouvrir_menu_dragodinde()
+    cocher_stats_bouffe()
+    while reste_dragodinde_etable():
+        placer_curseur_premiere_dd()
+        remplir_enclos_bouffe()
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_bouffe():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDBOUFFE -=1
+    while not enclos_est_vide():
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_bouffe():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDBOUFFE -=1
 
 def afficher_message(message):
     log_box.insert(tk.END, message)
@@ -128,6 +149,22 @@ def cocher_stats_baffeur():
     if NIVEAU_PRINT > 0:
         afficher_message("stats pour baffeur activé")
 
+def cocher_stats_bouffe():
+    cliquer_sur_pattern('./img/amour_suffisant.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur amour suffisant")
+    cliquer_sur_pattern('./img/endurance_suffisante.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur endurance suffisante")
+    cliquer_sur_pattern('./img/fatigue.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur fatigue <50")
+    cliquer_sur_pattern('./img/bouffe.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur besoin d'energie")
+    if NIVEAU_PRINT > 0:
+        afficher_message("stats pour baffeur activé")        
+
 def cliquer_sur_pattern(pattern_path):
     current_image = capturer_ecran()
     pattern = cv2.imread(pattern_path)
@@ -158,14 +195,17 @@ def placer_sur_pattern(pattern_path):
         if NIVEAU_PRINT > 2:
             afficher_message(f"pattern de {pattern_path} trouvé en [{center_x},{center_y}] placement")
 
-def pattern_est_present(pattern_path):
+def pattern_est_present(pattern_path, treshold=None):
     current_image = capturer_ecran()
     pattern = cv2.imread(pattern_path)
     h, w = pattern.shape[:-1]
     res = cv2.matchTemplate(current_image,pattern, cv2.TM_CCOEFF_NORMED)
-    treshold = 0.9
+    if treshold is not None:
+        tresholde = treshold
+    else:
+        tresholde = 0.9
     #loc = np.where(res >= treshold)
-    if(np.any(res >= treshold)):
+    if(np.any(res >= tresholde)):
         if NIVEAU_PRINT > 2:
             afficher_message(f"pattern de {pattern_path} trouvé")
             return True
@@ -223,6 +263,15 @@ def remplir_enclos_baffeur():
             afficher_message("ajout d'une draoginde dans l'enclos")
         ajouter_premiere_dragodinde()
         ACTUALDDBAFFEUR +=1
+
+def remplir_enclos_bouffe():
+    placer_curseur_premiere_dd()
+    global ACTUALDDBOUFFE,MAXDDBOUFFE
+    while ACTUALDDBOUFFE < MAXDDBOUFFE and reste_dragodinde_etable():
+        if NIVEAU_PRINT > 1:
+            afficher_message("ajout d'une draoginde dans l'enclos")
+        ajouter_premiere_dragodinde()
+        ACTUALDDBOUFFE +=1
 
 def analyser_fiche_dragodinde_caresseur():
     fiche = com1()  # → doit retourner l'image découpée de la fiche
@@ -356,6 +405,27 @@ def analyser_fiche_dragodinde_baffeur():
         return True
     else:
         return False
+    
+def analyser_fiche_dragodinde_bouffe():
+    fiche = com1()  # → doit retourner l'image découpée de la fiche
+    fiche = cv2.cvtColor(fiche, cv2.COLOR_RGB2BGR)
+    afficher_message("je scan la fiche")
+    if fiche is None:
+        return False
+    
+    pattern = cv2.imread('./img/bouffe_pleine.png')
+    h, w = pattern.shape[:-1]
+    res = cv2.matchTemplate(fiche,pattern, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.94
+    #loc = np.where(res >= treshold)
+    if(np.any(res >= treshold)):
+        if NIVEAU_PRINT > 2:
+            afficher_message("pattern de bouffe pleine trouvé")
+        return True
+    
+    return False
+
+   
 
 def enclos_est_vide():
     return pattern_est_present('./img/dragodinde_dans_enclos.png')
@@ -371,7 +441,7 @@ btns = tk.Frame(frame)
 btns.pack()
 tk.Button(btns, text="Caresseur", width=10,command=script_caresseur).grid(row=0, column=0)
 tk.Button(btns, text="Baffeur", width=10, command=script_baffeur).grid(row=0, column=1)
-tk.Button(btns, text="Dragofesse", width=10, command=com1).grid(row=0, column=2)
+tk.Button(btns, text="Mangeoire", width=10, command=script_nourriture).grid(row=0, column=2)
 tk.Button(btns, text="Foudroyeur", width=10, command=lambda: ajouter_direction("droite")).grid(row=0, column=3)
 
 
