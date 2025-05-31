@@ -130,7 +130,7 @@ def cocher_stats_caresseur():
     cliquer_sur_pattern('./img/besoin_damour.png')
     if NIVEAU_PRINT > 1:
         afficher_message("click sur besoin d'amour")
-    cliquer_sur_pattern('./img/fatigue.png')
+    cliquer_sur_pattern('./img/fatigue.png',0.99)
     if NIVEAU_PRINT > 1:
         afficher_message("click sur <50 fatigue")
     if NIVEAU_PRINT > 0:
@@ -146,6 +146,9 @@ def cocher_stats_baffeur():
     cliquer_sur_pattern('./img/amour_suffisant.png')
     if NIVEAU_PRINT > 1:
         afficher_message("click sur amour suffisant")
+    cliquer_sur_pattern('./img/fatigue.png',0.99)
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur <50 fatigue")
     if NIVEAU_PRINT > 0:
         afficher_message("stats pour baffeur activé")
 
@@ -156,7 +159,7 @@ def cocher_stats_bouffe():
     cliquer_sur_pattern('./img/endurance_suffisante.png')
     if NIVEAU_PRINT > 1:
         afficher_message("click sur endurance suffisante")
-    cliquer_sur_pattern('./img/fatigue.png')
+    cliquer_sur_pattern('./img/fatigue.png',0.99)
     if NIVEAU_PRINT > 1:
         afficher_message("click sur fatigue <50")
     cliquer_sur_pattern('./img/bouffe.png')
@@ -165,13 +168,16 @@ def cocher_stats_bouffe():
     if NIVEAU_PRINT > 0:
         afficher_message("stats pour baffeur activé")        
 
-def cliquer_sur_pattern(pattern_path):
+def cliquer_sur_pattern(pattern_path, treshold=None):
     current_image = capturer_ecran()
     pattern = cv2.imread(pattern_path)
     h, w = pattern.shape[:-1]
     res = cv2.matchTemplate(current_image,pattern, cv2.TM_CCOEFF_NORMED)
-    treshold = 0.9
-    loc = np.where(res >= treshold)
+    if treshold is not None:
+        tresholde = treshold
+    else:
+        tresholde = 0.9
+    loc = np.where(res >= tresholde)
     for pt in zip(*loc[::-1]):
         center_x = pt[0] +w//2
         center_y = pt[1] +h//2
