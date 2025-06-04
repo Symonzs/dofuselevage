@@ -51,7 +51,7 @@ def script_baffeur():
             pyautogui.click()
             pyautogui.click()
             pyautogui.click()
-            ACTUALDDCARESSEUR -=1
+            ACTUALDDBAFFEUR -=1
         t.sleep(3)
     while not enclos_est_vide():
         aller_a_random_dragodinde()
@@ -59,8 +59,8 @@ def script_baffeur():
             pyautogui.click()
             pyautogui.click()
             pyautogui.click()
-            ACTUALDDCARESSEUR -=1
-        t.sleep(3)
+            ACTUALDDBAFFEUR -=1
+        t.sleep(1)
 
 def script_baffeur_moyen():
     global ACTUALDDBAFFEUR
@@ -74,7 +74,7 @@ def script_baffeur_moyen():
             pyautogui.click()
             pyautogui.click()
             pyautogui.click()
-            ACTUALDDCARESSEUR -=1
+            ACTUALDDBAFFEUR -=1
         t.sleep(3)
     while not enclos_est_vide():
         aller_a_random_dragodinde()
@@ -82,7 +82,7 @@ def script_baffeur_moyen():
             pyautogui.click()
             pyautogui.click()
             pyautogui.click()
-            ACTUALDDCARESSEUR -=1
+            ACTUALDDBAFFEUR -=1
         t.sleep(3)
 
 def script_nourriture():
