@@ -29,6 +29,7 @@ def script_caresseur():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
+        t.sleep(3)
     while not enclos_est_vide():
         aller_a_random_dragodinde()
         if analyser_fiche_dragodinde_caresseur():
@@ -36,6 +37,7 @@ def script_caresseur():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
+        t.sleep(3)
 
 def script_baffeur():
     global ACTUALDDBAFFEUR
@@ -50,6 +52,7 @@ def script_baffeur():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
+        t.sleep(3)
     while not enclos_est_vide():
         aller_a_random_dragodinde()
         if analyser_fiche_dragodinde_baffeur():
@@ -57,6 +60,30 @@ def script_baffeur():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDCARESSEUR -=1
+        t.sleep(3)
+
+def script_baffeur_moyen():
+    global ACTUALDDBAFFEUR
+    ouvrir_menu_dragodinde()
+    cocher_stats_baffeur_moyen()
+    while reste_dragodinde_etable():
+        placer_curseur_premiere_dd()
+        remplir_enclos_baffeur()
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_baffeur_moyenne():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDCARESSEUR -=1
+        t.sleep(3)
+    while not enclos_est_vide():
+        aller_a_random_dragodinde()
+        if analyser_fiche_dragodinde_baffeur_moyenne():
+            pyautogui.click()
+            pyautogui.click()
+            pyautogui.click()
+            ACTUALDDCARESSEUR -=1
+        t.sleep(3)
 
 def script_nourriture():
     global ACTUALDDBOUFFE
@@ -71,6 +98,7 @@ def script_nourriture():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDBOUFFE -=1
+        t.sleep(3)
     while not enclos_est_vide():
         aller_a_random_dragodinde()
         if analyser_fiche_dragodinde_bouffe():
@@ -78,6 +106,7 @@ def script_nourriture():
             pyautogui.click()
             pyautogui.click()
             ACTUALDDBOUFFE -=1
+        t.sleep(3)
 
 def afficher_message(message):
     log_box.insert(tk.END, message)
@@ -149,6 +178,16 @@ def cocher_stats_baffeur():
     cliquer_sur_pattern('./img/fatigue.png',0.99)
     if NIVEAU_PRINT > 1:
         afficher_message("click sur <50 fatigue")
+    if NIVEAU_PRINT > 0:
+        afficher_message("stats pour baffeur activé")
+
+def cocher_stats_baffeur_moyen():
+    cliquer_sur_pattern('./img/serenite_positive.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur serenité positive")
+    cliquer_sur_pattern('./img/besoin_maturite.png')
+    if NIVEAU_PRINT > 1:
+        afficher_message("click sur besoin de maturité")
     if NIVEAU_PRINT > 0:
         afficher_message("stats pour baffeur activé")
 
@@ -285,6 +324,15 @@ def analyser_fiche_dragodinde_caresseur():
     afficher_message("je scan la fiche")
     if fiche is None:
         return False
+    
+    pattern2 = cv2.imread('./img/barre_fatigue.png')
+    
+    res = cv2.matchTemplate(fiche,pattern2, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.94
+    if(np.any(res >= treshold)):
+        if NIVEAU_PRINT > 2:
+            afficher_message("Monture fatigué trouvé")
+        return False
 
     # -- Détection du sexe --
     sexe = "inconnu"
@@ -352,6 +400,15 @@ def analyser_fiche_dragodinde_baffeur():
     afficher_message("je scan la fiche")
     if fiche is None:
         return False
+    
+    pattern2 = cv2.imread('./img/barre_fatigue.png')
+    
+    res = cv2.matchTemplate(fiche,pattern2, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.94
+    if(np.any(res >= treshold)):
+        if NIVEAU_PRINT > 2:
+            afficher_message("Monture fatigué trouvé")
+        return False
 
     # -- Détection du sexe --
     sexe = "inconnu"
@@ -412,6 +469,81 @@ def analyser_fiche_dragodinde_baffeur():
     else:
         return False
     
+def analyser_fiche_dragodinde_baffeur_moyenne():
+    fiche = com1()  # → doit retourner l'image découpée de la fiche
+    fiche = cv2.cvtColor(fiche, cv2.COLOR_RGB2BGR)
+    afficher_message("je scan la fiche")
+    if fiche is None:
+        return False
+    
+    pattern2 = cv2.imread('./img/barre_fatigue.png')
+    
+    res = cv2.matchTemplate(fiche,pattern2, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.94
+    if(np.any(res >= treshold)):
+        if NIVEAU_PRINT > 2:
+            afficher_message("Monture fatigué trouvé")
+        return False
+
+    # -- Détection du sexe --
+    sexe = "inconnu"
+    try:
+        male_icon = cv2.imread('./img/male.png')
+        femelle_icon = cv2.imread('./img/femelle.png')
+        #cv2.imshow("icon",femelle_icon)
+        #cv2.imshow("fiche",fiche)
+
+        if male_icon is not None:
+            res_male = cv2.matchTemplate(fiche, male_icon, cv2.TM_CCOEFF_NORMED)
+            afficher_message("je vais check si c'est un male")
+            if np.max(res_male) > 0.9:
+                sexe = "male"
+                afficher_message("je detecte un male")
+
+        if femelle_icon is not None:
+            res_femelle = cv2.matchTemplate(fiche, femelle_icon, cv2.TM_CCOEFF_NORMED)
+            afficher_message("je vais check si c'est une femelle")
+            if np.max(res_femelle) > 0.9:
+                sexe = "femelle"
+                afficher_message("je detecte une femelle")
+    except:
+        return False
+
+    # -- Lecture de l’humeur --
+    try:
+        x, y, w, h = 140, 385, 70, 30  # zone relative à la fiche (à ajuster)
+        humeur_zone = fiche[y:y+h, x:x+w]
+        cv2.imshow("humeur drago",humeur_zone)
+        afficher_message("analyse de l'humeur de la dragodinde")
+        gray = cv2.cvtColor(humeur_zone, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        config = "--psm 7 -c tessedit_char_whitelist=-0123456789"
+        texte = pytesseract.image_to_string(thresh, config=config).strip()
+        humeur1 = int(texte)
+        x, y, w, h = 140, 385, 70, 30  # zone relative à la fiche (à ajuster)
+        humeur_zone = fiche[y:y+h, x:x+w]
+        cv2.imshow("humeur drago",humeur_zone)
+        afficher_message("analyse de l'humeur de la dragodinde")
+        gray = cv2.cvtColor(humeur_zone, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        config = "--psm 7 -c tessedit_char_whitelist=-0123456789"
+        texte = pytesseract.image_to_string(thresh, config=config).strip()
+        humeur2 = int(texte)
+        if humeur1 == humeur2:
+            afficher_message(f"j'ai trouver une humeur de {humeur1}")
+        else:
+            return False
+    except:
+        return False
+
+    # -- Vérifie les règles --
+    if sexe == "femelle" and humeur1 < 1500 and humeur1 > -2000 and humeur2 < 1500 and humeur2 > -2000:
+        return True
+    elif sexe == "male" and humeur1 < 2000 and humeur1 > -1500 and humeur2 < 2000 and humeur2 > -1500:
+        return True
+    else:
+        return False
+    
 def analyser_fiche_dragodinde_bouffe():
     fiche = com1()  # → doit retourner l'image découpée de la fiche
     fiche = cv2.cvtColor(fiche, cv2.COLOR_RGB2BGR)
@@ -419,11 +551,21 @@ def analyser_fiche_dragodinde_bouffe():
     if fiche is None:
         return False
     
+    pattern2 = cv2.imread('./img/barre_fatigue.png')
+    
+    res = cv2.matchTemplate(fiche,pattern2, cv2.TM_CCOEFF_NORMED)
+    treshold = 0.94
+    if(np.any(res >= treshold)):
+        if NIVEAU_PRINT > 2:
+            afficher_message("Monture fatigué trouvé")
+        return False
+
     pattern = cv2.imread('./img/bouffe_pleine.png')
-    h, w = pattern.shape[:-1]
+    
     res = cv2.matchTemplate(fiche,pattern, cv2.TM_CCOEFF_NORMED)
     treshold = 0.94
     #loc = np.where(res >= treshold)
+
     if(np.any(res >= treshold)):
         if NIVEAU_PRINT > 2:
             afficher_message("pattern de bouffe pleine trouvé")
@@ -448,7 +590,7 @@ btns.pack()
 tk.Button(btns, text="Caresseur", width=10,command=script_caresseur).grid(row=0, column=0)
 tk.Button(btns, text="Baffeur", width=10, command=script_baffeur).grid(row=0, column=1)
 tk.Button(btns, text="Mangeoire", width=10, command=script_nourriture).grid(row=0, column=2)
-tk.Button(btns, text="Foudroyeur", width=10, command=lambda: ajouter_direction("droite")).grid(row=0, column=3)
+tk.Button(btns, text="baffeur moyen", width=10, command=script_baffeur_moyen).grid(row=0, column=3)
 
 
 tk.Label(frame, text="Action en cours :").pack(pady=(10, 0))
